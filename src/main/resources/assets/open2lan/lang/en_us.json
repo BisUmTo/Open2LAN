@@ -1,10 +1,21 @@
 {
   "menu.lanConfig": "LAN Config",
-  "lanServer.configTitle": "LAN Server Configuration",
+  "lanServer.configTitle": "LAN World Configuration",
   "lanServer.maxPlayers": "Max Players",
   "lanServer.onlineMode": "Online Mode",
   "lanServer.pvpEnabled": "PVP Enabled",
-  "lanServer.selectPort": "Server Port",
-  "lanServer.configSaved": "LAN Server Configuration saved",
-  "lanServer.cannotChange": "You cannot change this value while the server is running"
+  "lanServer.selectPort": "LAN World Port",
+  "lanServer.shareToWan": "Open to WAN",
+  "lanServer.configSaved": "LAN World Configuration saved",
+  "lanServer.cannotChange": "You cannot change this value while the server is running",
+  "wanServer.start": "Start WAN World",
+  "wanServer.startFailed": "WAN World failed to start",
+  "wanServer.started": "WAN World hosted at %s",
+  "wanServer.stop": "Stop WAN World",
+  "wanServer.stopped": "WAN World stopped",
+  "wanServer.address": "WAN World Address",
+  "wanServer.authtoken": "NGROK Authtoken",
+  "wanServer.unknownAddress": "Start the WAN World to generate",
+  "wanServer.changedPort": "As the LAN World port changed, WAN World stopped",
+  "wanServer.title": "WAN World"
 }

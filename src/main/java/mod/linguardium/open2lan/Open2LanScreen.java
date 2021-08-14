@@ -9,13 +9,19 @@ import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.util.NetworkUtils;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.*;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.GameMode;
+
+import java.io.IOException;
+
+import static mod.linguardium.open2lan.Open2Lan.MOD_ID;
 
 public class Open2LanScreen extends Screen {
     private static final Text ALLOW_COMMANDS_TEXT = new TranslatableText("selectWorld.allowCommands");
@@ -28,9 +34,12 @@ public class Open2LanScreen extends Screen {
     private static final Text START_TEXT = new TranslatableText("lanServer.start");
     private static final Text CONFIG_SAVED_TEXT = new TranslatableText("lanServer.configSaved");
     private static final Text CONFIG_TITLE_TEXT = new TranslatableText("lanServer.configTitle");
+    private static final Text OPEN_TO_WAN_TEXT = new TranslatableText("lanServer.shareToWan");
+    private static final Text CHANGED_PORT_TEXT = new TranslatableText("wanServer.changedPort");
+    private static final Identifier WIDGETS_TEXTURE = new Identifier(MOD_ID, "textures/gui/widgets.png");
 
     private final Screen parent;
-    private MinecraftServer server;
+    private final MinecraftServer server;
     private GameMode gameMode;
     private boolean allowCommands;
     private boolean onlineMode;
@@ -46,8 +55,10 @@ public class Open2LanScreen extends Screen {
     private TextFieldWidget portField;
     private TextFieldWidget maxPlayersField;
 
+    private ButtonWidget startButton;
     private ButtonWidget doneButton;
     private ButtonWidget cancelButton;
+    private ButtonWidget wanButton;
 
     private Text displayTitle;
 
@@ -90,7 +101,17 @@ public class Open2LanScreen extends Screen {
         addDrawableChild(allowCommandsButton);
 
         // PORT
-        portField = new TextFieldWidget(client.textRenderer, width / 2 - 155 + 1, height / 4 + 45, 148, 20, SELECT_PORT_TEXT);
+        portField = new TextFieldWidget(client.textRenderer, width / 2 - 155 + 1, height / 4 + 45, 148, 20, SELECT_PORT_TEXT) {
+            @Override
+            public boolean mouseClicked(double mouseX, double mouseY, int button) {
+                if (isMouseOver(mouseX, mouseY) && client.isIntegratedServerRunning() && server.isRemote()) {
+                    client.keyboard.setClipboard(portField.getText());
+                    playDownSound(client.getSoundManager());
+                    return true;
+                }
+                return super.mouseClicked(mouseX, mouseY, button);
+            }
+        };
         portField.setText(Integer.toString(lanPort));
         portField.setMaxLength(6);
         portField.setChangedListener((sPort) -> {
@@ -141,33 +162,60 @@ public class Open2LanScreen extends Screen {
                 .build(width / 2 + 5, height / 4 + 69, 150, 20, ENABLE_PVP_TEXT, (button, enablePvp) -> this.enablePvp = enablePvp);
         addDrawableChild(enablePvpButton);
 
-        // DONE
-        doneButton = new ButtonWidget(width / 2 - 155, height / 4 + 104, 150, 20, START_TEXT, (button) -> {
-            if (client.isIntegratedServerRunning() && server.isRemote()) { // UPDATE
-                this.client.setScreen(parent);
-
-                ((IntegratedServerAccessor) server).setForcedGameMode(gameMode);
-                server.getPlayerManager().setCheatsAllowed(allowCommands);
-                client.player.setClientPermissionLevel(server.getPermissionLevel(client.player.getGameProfile()));
-                for (ServerPlayerEntity serverPlayerEntity : server.getPlayerManager().getPlayerList()) {
-                    server.getCommandManager().sendCommandTree(serverPlayerEntity);
+        // START
+        startButton = new ButtonWidget(width / 2 - 155, height / 4 + 104, 150, 20, START_TEXT, (button) -> {
+            client.setScreen(null);
+            int i = lanPort > 0 && lanPort < 65536 ? lanPort : NetworkUtils.findLocalPort();
+            if (server.openToLan(this.gameMode, this.allowCommands, i)) {
+                client.inGameHud.getChatHud().addMessage(new TranslatableText("commands.publish.started",
+                        Texts.bracketed(new LiteralText(String.valueOf(i))).styled(
+                                (style) -> style
+                                        .withColor(Formatting.GREEN)
+                                        .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, String.valueOf(i)))
+                                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableText("chat.copy.click")))
+                                        .withInsertion(String.valueOf(i))
+                        )
+                ));
+                if (Open2Lan.NGROK_TUNNEL != null && Open2Lan.NGROK_TUNNEL.port() != server.getServerPort()) {
+                    try {
+                        Open2Lan.NGROK_TUNNEL.close();
+                        client.inGameHud.getChatHud().addMessage(CHANGED_PORT_TEXT);
+                    } catch (IOException ignored) {
+                    }
+                    Open2Lan.NGROK_TUNNEL = null;
                 }
-                this.client.inGameHud.getChatHud().addMessage(CONFIG_SAVED_TEXT);
-            } else { // START
-                client.setScreen(null);
-                int i = lanPort > 0 && lanPort < 65536 ? lanPort : NetworkUtils.findLocalPort();
-                TranslatableText text2;
-                if (server.openToLan(this.gameMode, this.allowCommands, i))
-                    text2 = new TranslatableText("commands.publish.started", i);
-                else
-                    text2 = new TranslatableText("commands.publish.failed");
-                this.client.inGameHud.getChatHud().addMessage(text2);
-                this.client.updateWindowTitle();
-            }
+                // todo messaggio wan
+            } else
+                client.inGameHud.getChatHud().addMessage(new TranslatableText("commands.publish.failed"));
+            client.updateWindowTitle();
             server.setOnlineMode(onlineMode);
             server.setPvpEnabled(enablePvp);
-            ((PlayerManagerAccessor)server.getPlayerManager()).setMaxPlayers(maxPlayers);
+            ((PlayerManagerAccessor) server.getPlayerManager()).setMaxPlayers(maxPlayers);
         });
+        this.addDrawableChild(startButton);
+
+        // WAN
+        wanButton = new TexturedButtonWidget(width / 2 - 155, height / 4 + 104, 20, 20, 0, 0, 20, WIDGETS_TEXTURE, 20, 40, (button) -> {
+            this.client.setScreen(new Open2WanScreen(this, client));
+        }, OPEN_TO_WAN_TEXT);
+        wanButton.visible = false;
+        this.addDrawableChild(wanButton);
+
+        // DONE
+        doneButton = new ButtonWidget(width / 2 - 131, height / 4 + 104, 126, 20, ScreenTexts.DONE, (button) -> {
+            client.setScreen(null);
+            ((IntegratedServerAccessor) server).setForcedGameMode(gameMode);
+            server.getPlayerManager().setCheatsAllowed(allowCommands);
+            client.player.setClientPermissionLevel(server.getPermissionLevel(client.player.getGameProfile()));
+            for (ServerPlayerEntity serverPlayerEntity : server.getPlayerManager().getPlayerList()) {
+                server.getCommandManager().sendCommandTree(serverPlayerEntity);
+            }
+            client.inGameHud.getChatHud().addMessage(CONFIG_SAVED_TEXT);
+            server.setOnlineMode(onlineMode);
+            server.setPvpEnabled(enablePvp);
+            ((PlayerManagerAccessor) server.getPlayerManager()).setMaxPlayers(maxPlayers);
+        });
+        doneButton.visible = false;
         this.addDrawableChild(doneButton);
 
         // CANCEL
@@ -176,7 +224,9 @@ public class Open2LanScreen extends Screen {
 
         // UPDATE PAGE
         if (client.isIntegratedServerRunning() && server.isRemote()) {
-            doneButton.setMessage(ScreenTexts.DONE);
+            doneButton.visible = true;
+            wanButton.visible = true;
+            startButton.visible = false;
             portField.setEditable(false);
             displayTitle = CONFIG_TITLE_TEXT;
         }
@@ -191,5 +241,9 @@ public class Open2LanScreen extends Screen {
         drawCenteredText(matrices, this.textRenderer, MAX_PLAYERS_TEXT, width / 2 + 7 + (textRenderer.getWidth(MAX_PLAYERS_TEXT) / 2), height / 4 + 32, 16777215);
         maxPlayersField.render(matrices, mouseX, mouseY, delta);
         super.render(matrices, mouseX, mouseY, delta);
+    }
+
+    public int getLanPort() {
+        return lanPort;
     }
 }

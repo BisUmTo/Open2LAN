@@ -10,6 +10,7 @@
   "client": [
     "GameMenuScreenMixin",
     "PublishCommandMixin",
+    "MinecraftClientMixin",
     "ServerLoginNetworkHandlerThreadMixin"
   ],
   "server": [
