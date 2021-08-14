@@ -1,4 +1,4 @@
-package mod.linguardium.open2lan;
+package it.multicoredev.opentoall.ngrok;
 
 
 import com.google.gson.Gson;
@@ -31,24 +31,24 @@ public class NgrokTunnel {
         json.addProperty("proto", "tcp");
         String jsonInputString = json.toString();
 
-        HttpURLConnection con = (HttpURLConnection) new URL(ngrokAddr + "/api/tunnel/" + name).openConnection();
+        HttpURLConnection con = (HttpURLConnection) new URL(ngrokAddr + "/api/tunnels").openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Accept", "application/json");
         con.setRequestProperty("Content-Type", "application/json; utf-8");
+        con.setRequestProperty("User-Agent", "Mozilla/5.0");
         con.setDoOutput(true);
         try (OutputStream os = con.getOutputStream()) {
             byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
             os.write(input, 0, input.length);
         }
 
-        if (con.getResponseCode() != 201) throw new Exception();
-
+        if (con.getResponseCode() != 201) throw new NgrokTunnelException();
 
         try (InputStreamReader reader = new InputStreamReader(con.getInputStream())) {
             Response response = new Gson().fromJson(reader, Response.class);
             this.url = response.publicURL;
         }
-        if (this.url == null) throw new NgrokTunnelException();
+        if (this.url == null) throw new Exception();
     }
 
     public NgrokTunnel(int port) throws Exception {
@@ -65,7 +65,7 @@ public class NgrokTunnel {
     }
 
     public void close() throws IOException {
-        HttpURLConnection con = (HttpURLConnection) new URL(ngrokAddr + "/api/tunnel/" + name).openConnection();
+        HttpURLConnection con = (HttpURLConnection) new URL(ngrokAddr + "/api/tunnels/" + name).openConnection();
         con.setRequestMethod("DELETE");
         con.connect();
     }

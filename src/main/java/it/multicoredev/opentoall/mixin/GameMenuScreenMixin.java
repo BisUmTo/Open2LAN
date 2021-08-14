@@ -1,6 +1,6 @@
-package mod.linguardium.open2lan.mixin;
+package it.multicoredev.opentoall.mixin;
 
-import mod.linguardium.open2lan.Open2LanScreen;
+import it.multicoredev.opentoall.gui.screen.OpenToLanScreen;
 import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -28,7 +28,7 @@ public class GameMenuScreenMixin extends Screen {
         oldButton.visible = false;
 
         ButtonWidget lanServerButton = new ButtonWidget(width / 2 + 4, height / 4 + 96 + -16, 98, 20, OPEN_TO_LAN_TEXT,
-                (button) -> Objects.requireNonNull(client).setScreen(new Open2LanScreen(this, client))
+                (button) -> Objects.requireNonNull(client).setScreen(new OpenToLanScreen(this))
         );
         addDrawableChild(lanServerButton);
 

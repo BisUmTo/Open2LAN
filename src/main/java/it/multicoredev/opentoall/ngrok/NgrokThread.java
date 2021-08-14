@@ -1,5 +1,7 @@
-package mod.linguardium.open2lan;
+package it.multicoredev.opentoall.ngrok;
 
+import it.multicoredev.opentoall.OpenToALL;
+import it.multicoredev.opentoall.util.ZipUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Level;
 
@@ -20,7 +22,7 @@ public class NgrokThread extends Thread {
         this.os = OS.getOs();
 
         if (os == null) {
-            Open2Lan.log(Level.ERROR,"Unknown OS: Impossible to start Ngrok app.");
+            OpenToALL.log(Level.ERROR, "Unknown OS: Impossible to start Ngrok app.");
             return;
         }
         ngrokFile = new File(NGROK_FOLDER, os.exe);
@@ -28,42 +30,69 @@ public class NgrokThread extends Thread {
         if (!ngrokFile.exists() || !ngrokFile.isFile()) success = download();
         if (needAuthentication()) authenticate();
         if (success) startNgrok();
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            while (br.readLine() != null) {
+            }
+        } catch (IOException e) {
+            if (OpenToALL.DEBUG) e.printStackTrace();
+        }
+
+        OpenToALL.NGROK_THREAD = null;
     }
 
     private void authenticate() {
         try {
-            if(process != null) process.destroy();
+            if (process != null) process.destroy();
             process = new ProcessBuilder(ngrokFile.getAbsolutePath(), "authtoken ", authtoken).start();
         } catch (IOException e) {
-            Open2Lan.log(Level.ERROR,"Failed to authenticate on Ngrok app!");
-            Open2Lan.LOGGER.error(e);
+            OpenToALL.log(Level.ERROR, "Failed to authenticate on Ngrok app!");
+            OpenToALL.LOGGER.error(e);
         }
     }
 
-    private boolean needAuthentication() {
+    public static boolean needAuthentication() {
         File configFile = OS.getConfig();
         if (!configFile.exists() || !configFile.isFile()) return true;
         try (BufferedReader br = new BufferedReader(new FileReader(configFile))) {
             String str;
             while ((str = br.readLine()) != null)
-                if(str.contains("authtoken")) return false;
-        } catch (IOException ignored) {
+                if (str.contains("authtoken")) return false;
+        } catch (IOException e) {
+            if (OpenToALL.DEBUG) e.printStackTrace();
         }
         return true;
     }
 
+    public static String getAuthtoken() {
+        File configFile = OS.getConfig();
+        if (!configFile.exists() || !configFile.isFile()) return null;
+        try (BufferedReader br = new BufferedReader(new FileReader(configFile))) {
+            String str;
+            while ((str = br.readLine()) != null)
+                if (str.contains("authtoken")) {
+                    String[] split = str.split(" ");
+                    return split[split.length - 1];
+                }
+        } catch (IOException e) {
+            if (OpenToALL.DEBUG) e.printStackTrace();
+        }
+        return null;
+    }
+
+
     private void startNgrok() {
         try {
-            if(process != null) process.destroy();
+            if (process != null) process.destroy();
             process = new ProcessBuilder(ngrokFile.getAbsolutePath(), "start", "--none").start();
         } catch (IOException e) {
-            Open2Lan.log(Level.ERROR,"Failed to start Ngrok app!");
-            Open2Lan.LOGGER.error(e);
+            OpenToALL.log(Level.ERROR, "Failed to start Ngrok app!");
+            if (OpenToALL.DEBUG) e.printStackTrace();
         }
     }
 
     public boolean download() {
-        Open2Lan.LOGGER.info("Downloading Ngrok app...");
+        OpenToALL.LOGGER.info("Downloading Ngrok app...");
         File zip = new File(NGROK_FOLDER, "ngrok.zip");
         try {
             FileUtils.copyURLToFile(new URL(os.download), zip);
@@ -71,10 +100,15 @@ public class NgrokThread extends Thread {
             zip.delete();
             return true;
         } catch (IOException e) {
-            Open2Lan.log(Level.ERROR,"Failed to download Ngrok app!");
-            Open2Lan.LOGGER.error(e);
+            OpenToALL.log(Level.ERROR, "Failed to download Ngrok app!");
+            if (OpenToALL.DEBUG) e.printStackTrace();
             return false;
         }
+    }
+
+    public void setAuthtoken(String authtoken) {
+        String[] split = authtoken.split(" ");
+        this.authtoken = split[split.length - 1];
     }
 
     public enum OS {
@@ -112,8 +146,5 @@ public class NgrokThread extends Thread {
         public String getDownload() {
             return download;
         }
-    }
-
-    private static class NgrokThreadExcption extends Exception {
     }
 }

@@ -1,4 +1,4 @@
-package mod.linguardium.open2lan.mixin;
+package it.multicoredev.opentoall.mixin;
 
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;

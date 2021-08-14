@@ -1,5 +1,7 @@
-package mod.linguardium.open2lan;
+package it.multicoredev.opentoall;
 
+import it.multicoredev.opentoall.ngrok.NgrokThread;
+import it.multicoredev.opentoall.ngrok.NgrokTunnel;
 import net.fabricmc.api.ModInitializer;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -7,10 +9,11 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
-public class Open2Lan implements ModInitializer {
-    public static final String MOD_ID = "open2lan";
-    public static final String MOD_NAME = "Open To Lan";
+public class OpenToALL implements ModInitializer {
+    public static final String MOD_ID = "opentoall";
+    public static final String MOD_NAME = "Open to ALL";
     public static Logger LOGGER = LogManager.getLogger();
+    public static boolean DEBUG = true;
 
     public static NgrokTunnel NGROK_TUNNEL;
     public static NgrokThread NGROK_THREAD;
@@ -22,18 +25,14 @@ public class Open2Lan implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // todo muovere thread
-
-        NGROK_THREAD = new NgrokThread();
-
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                NGROK_TUNNEL.close();
+                if (NGROK_TUNNEL != null) NGROK_TUNNEL.close();
             } catch (IOException ignored) {
             }
-            NGROK_THREAD.interrupt();
+            if (NGROK_THREAD != null && NGROK_THREAD.isAlive()) NGROK_THREAD.interrupt();
         }));
-        NGROK_THREAD.start();
+
     }
 
 }

@@ -1,4 +1,4 @@
-package mod.linguardium.open2lan;
+package it.multicoredev.opentoall.util;
 
 import java.io.File;
 import java.io.FileInputStream;
