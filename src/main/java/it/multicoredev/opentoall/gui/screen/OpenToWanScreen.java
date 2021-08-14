@@ -18,18 +18,25 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+import static it.multicoredev.opentoall.OpenToALL.*;
 
 public class OpenToWanScreen extends Screen {
     private static final Text START_TEXT = new TranslatableText("wanServer.start");
     private static final Text START_FAILED_TEXT = new TranslatableText("wanServer.startFailed").styled(style -> style.withColor(Formatting.RED));
+    private static final Text START_FAILED_CHECK_TOKEN_TEXT = new TranslatableText("wanServer.startFailedCheckToken").styled(style -> style.withColor(Formatting.RED));
+    private static final Text START_TIMEOUT_TEXT = new TranslatableText("wanServer.startTimeout").styled(style -> style.withColor(Formatting.RED));
     private static final Text STOP_TEXT = new TranslatableText("wanServer.stop");
     private static final Text STOPPED_TEXT = new TranslatableText("wanServer.stopped");
     private static final Text ADDRESS_TEXT = new TranslatableText("wanServer.address");
     private static final Text UNKNOWN_ADDRESS_TEXT = new TranslatableText("wanServer.unknownAddress");
     private static final Text AUTHTOKEN_TEXT = new TranslatableText("wanServer.authtoken");
     private static final Text GET_AUTHTOKEN_TEXT = new TranslatableText("wanServer.getAuthtoken");
-    private static final Text ALREADY_AUTHORIZED = new TranslatableText("wanServer.alreadyAuthorized");
-    private static final Text NEED_AUTHORIZATION = new TranslatableText("wanServer.needAuthorization");
+    private static final Text ALREADY_AUTHORIZED_TEXT = new TranslatableText("wanServer.alreadyAuthorized");
+    private static final Text NEED_AUTHORIZATION_TEXT = new TranslatableText("wanServer.needAuthorization");
+    public static final Text DONLOADING_TEXT = new TranslatableText("wanServer.downloadingNgrok").styled(style -> style.withColor(Formatting.GRAY));
+    public static final Text DONLOADED_TEXT = new TranslatableText("wanServer.downloadedNgrok").styled(style -> style.withColor(Formatting.GRAY));
     private static final String NGROK_WEBSITE = "https://dashboard.ngrok.com/";
 
     private final Screen parent;
@@ -46,12 +53,12 @@ public class OpenToWanScreen extends Screen {
 
     public static void sendWanMessage(String translatableKey) {
         MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(new TranslatableText(translatableKey,
-                Texts.bracketed(new LiteralText(OpenToALL.NGROK_TUNNEL.ip())).styled(
+                Texts.bracketed(new LiteralText(NGROK_TUNNEL.ip())).styled(
                         (style) -> style
                                 .withColor(Formatting.GREEN)
-                                .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, OpenToALL.NGROK_TUNNEL.ip()))
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, NGROK_TUNNEL.ip()))
                                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableText("chat.copy.click")))
-                                .withInsertion(OpenToALL.NGROK_TUNNEL.ip())
+                                .withInsertion(NGROK_TUNNEL.ip())
                 )
         ));
     }
@@ -59,25 +66,15 @@ public class OpenToWanScreen extends Screen {
     protected void init() {
         // ADDRESS
         addressField = new CopyTextFieldWidget(client.textRenderer, width / 2 - 155 + 1, height / 4 + 21, 308, 20, ADDRESS_TEXT);
-        if (OpenToALL.NGROK_TUNNEL != null && OpenToALL.NGROK_TUNNEL.ip() != null) addressField.setText(OpenToALL.NGROK_TUNNEL.ip());
+        if (NGROK_TUNNEL != null && NGROK_TUNNEL.ip() != null) addressField.setText(NGROK_TUNNEL.ip());
         else addressField.setText(UNKNOWN_ADDRESS_TEXT.getString());
         addDrawableChild(addressField);
 
         // AUTHTOKEN
-        authtokenField = new PasswordFieldWidget(client.textRenderer, width / 2 - 155 + 1, height / 4 + 62, 228, 20);
+        authtokenField = new PasswordFieldWidget(client.textRenderer, width / 2 - 155 + 1, height / 4 + 62, 228, 20, NEED_AUTHORIZATION_TEXT);
         if (!NgrokThread.needAuthentication()) {
-            authtokenField.password = false;
             authtokenField.setEditable(false);
-            authtokenField.setText(ALREADY_AUTHORIZED.getString());
-        } else {
-            authtokenField.password = false;
-            authtokenField.setChangedListener(s -> {
-                if (!authtokenField.password) {
-                    authtokenField.password = true;
-                    authtokenField.setText("");
-                }
-            });
-            authtokenField.setText(NEED_AUTHORIZATION.getString());
+            authtokenField.emptyText = ALREADY_AUTHORIZED_TEXT;
         }
         authtokenField.setMaxLength(66);
         addDrawableChild(authtokenField);
@@ -88,12 +85,12 @@ public class OpenToWanScreen extends Screen {
 
         // START
         ButtonWidget startButton = new ButtonWidget(width / 2 - 155, height / 4 + 104, 150, 20, START_TEXT, this::startWanWorld);
-        if (OpenToALL.NGROK_TUNNEL != null) startButton.visible = false;
+        if (NGROK_TUNNEL != null) startButton.visible = false;
         this.addDrawableChild(startButton);
 
         // STOP
         ButtonWidget stopButton = new ButtonWidget(width / 2 - 155, height / 4 + 104, 150, 20, STOP_TEXT, this::stopWanWorld);
-        if (OpenToALL.NGROK_TUNNEL == null) stopButton.visible = false;
+        if (NGROK_TUNNEL == null) stopButton.visible = false;
         this.addDrawableChild(stopButton);
 
         // CANCEL
@@ -113,22 +110,30 @@ public class OpenToWanScreen extends Screen {
 
     // START
     private void startWanWorld(ButtonWidget button) {
-        startWanWorld();
+        new Thread(this::startWanWorld).start();
         client.setScreen(null);
     }
 
     private void startWanWorld() {
         try {
-            if (OpenToALL.NGROK_THREAD == null) {
-                OpenToALL.NGROK_THREAD = new NgrokThread();
-                if (NgrokThread.needAuthentication()) OpenToALL.NGROK_THREAD.setAuthtoken(authtokenField.getText());
-                OpenToALL.NGROK_THREAD.start();
+            if (NgrokThread.needAuthentication()) OpenToALL.shutDown();
+            if ((!NgrokThread.isRunning(1) && NGROK_THREAD == null) || NgrokThread.needAuthentication()) {
+                NGROK_THREAD = new NgrokThread();
+                if (NgrokThread.needAuthentication()) NGROK_THREAD.setAuthtoken(authtokenField.getText());
+                NGROK_THREAD.start();
             }
-            OpenToALL.NGROK_TUNNEL = new NgrokTunnel(server.getServerPort());
+            if(!NgrokThread.isRunning(NgrokThread.fileExist()?50:600)) throw new TimeoutException();
+            NGROK_TUNNEL = new NgrokTunnel(server.getServerPort());
             sendWanMessage("wanServer.started");
+        } catch (TimeoutException e){
+            if (OpenToALL.DEBUG) e.printStackTrace();
+            client.inGameHud.getChatHud().addMessage(START_TIMEOUT_TEXT);
         } catch (Exception e) {
             if (OpenToALL.DEBUG) e.printStackTrace();
-            client.inGameHud.getChatHud().addMessage(START_FAILED_TEXT);
+            if(NgrokThread.needAuthentication() && authtokenField.getText().isEmpty())
+                client.inGameHud.getChatHud().addMessage(START_FAILED_CHECK_TOKEN_TEXT);
+            else
+                client.inGameHud.getChatHud().addMessage(START_FAILED_TEXT);
         }
     }
 
@@ -140,12 +145,12 @@ public class OpenToWanScreen extends Screen {
 
     private void stopWanWorld() {
         try {
-            OpenToALL.NGROK_TUNNEL.close();
+            NGROK_TUNNEL.close();
             client.inGameHud.getChatHud().addMessage(STOPPED_TEXT);
         } catch (IOException e) {
             if (OpenToALL.DEBUG) e.printStackTrace();
         }
-        OpenToALL.NGROK_TUNNEL = null;
+        NGROK_TUNNEL = null;
     }
 
     // OPEN

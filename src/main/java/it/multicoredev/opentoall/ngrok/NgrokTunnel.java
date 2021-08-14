@@ -67,7 +67,7 @@ public class NgrokTunnel {
     public void close() throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(ngrokAddr + "/api/tunnels/" + name).openConnection();
         con.setRequestMethod("DELETE");
-        con.connect();
+        con.getResponseCode();
     }
 
     public int port() {

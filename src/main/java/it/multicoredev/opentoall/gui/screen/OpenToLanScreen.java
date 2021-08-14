@@ -32,10 +32,10 @@ public class OpenToLanScreen extends Screen {
     private static final Text OTHER_PLAYERS_TEXT = new TranslatableText("lanServer.otherPlayers");
     private static final Text SELECT_PORT_TEXT = new TranslatableText("lanServer.selectPort");
     private static final Text START_TEXT = new TranslatableText("lanServer.start");
-    private static final Text CONFIG_SAVED_TEXT = new TranslatableText("lanServer.configSaved");
+    private static final Text CONFIG_SAVED_TEXT = new TranslatableText("lanServer.configSaved").styled(style -> style.withColor(Formatting.GRAY));
     private static final Text CONFIG_TITLE_TEXT = new TranslatableText("lanServer.configTitle");
     private static final Text OPEN_TO_WAN_TEXT = new TranslatableText("lanServer.shareToWan");
-    private static final Text CHANGED_PORT_TEXT = new TranslatableText("wanServer.changedPort");
+    private static final Text CHANGED_PORT_TEXT = new TranslatableText("wanServer.changedPort").styled(style -> style.withColor(Formatting.GRAY));
     private static final Identifier WIDGETS_TEXTURE = new Identifier(OpenToALL.MOD_ID, "textures/gui/widgets.png");
 
     private final Screen parent;

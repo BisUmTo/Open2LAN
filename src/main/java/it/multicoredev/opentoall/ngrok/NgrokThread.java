@@ -2,11 +2,22 @@ package it.multicoredev.opentoall.ngrok;
 
 import it.multicoredev.opentoall.OpenToALL;
 import it.multicoredev.opentoall.util.ZipUtil;
+import net.minecraft.client.MinecraftClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Level;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Objects;
+
+import static it.multicoredev.opentoall.OpenToALL.DEBUG;
+import static it.multicoredev.opentoall.OpenToALL.NGROK_THREAD;
+import static it.multicoredev.opentoall.gui.screen.OpenToWanScreen.DONLOADED_TEXT;
+import static it.multicoredev.opentoall.gui.screen.OpenToWanScreen.DONLOADING_TEXT;
 
 public class NgrokThread extends Thread {
     public static final String NGROK_FOLDER = "mods";
@@ -16,40 +27,6 @@ public class NgrokThread extends Thread {
     private OS os;
     private Process process;
     private String authtoken;
-
-    @Override
-    public void run() {
-        this.os = OS.getOs();
-
-        if (os == null) {
-            OpenToALL.log(Level.ERROR, "Unknown OS: Impossible to start Ngrok app.");
-            return;
-        }
-        ngrokFile = new File(NGROK_FOLDER, os.exe);
-        boolean success = true;
-        if (!ngrokFile.exists() || !ngrokFile.isFile()) success = download();
-        if (needAuthentication()) authenticate();
-        if (success) startNgrok();
-
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            while (br.readLine() != null) {
-            }
-        } catch (IOException e) {
-            if (OpenToALL.DEBUG) e.printStackTrace();
-        }
-
-        OpenToALL.NGROK_THREAD = null;
-    }
-
-    private void authenticate() {
-        try {
-            if (process != null) process.destroy();
-            process = new ProcessBuilder(ngrokFile.getAbsolutePath(), "authtoken ", authtoken).start();
-        } catch (IOException e) {
-            OpenToALL.log(Level.ERROR, "Failed to authenticate on Ngrok app!");
-            OpenToALL.LOGGER.error(e);
-        }
-    }
 
     public static boolean needAuthentication() {
         File configFile = OS.getConfig();
@@ -80,6 +57,79 @@ public class NgrokThread extends Thread {
         return null;
     }
 
+    public void setAuthtoken(String authtoken) throws Exception {
+        String[] split = authtoken.split(" ");
+        String token = split[split.length - 1].replaceAll("[^a-zA-Z0-9_]", "");
+        if (token.length() == 42 || token.length() == 48)
+            this.authtoken = token;
+        else
+            throw new Exception();
+    }
+
+    public static boolean fileExist() {
+        File tmp = new File(NGROK_FOLDER, Objects.requireNonNull(OS.getOs()).getExe());
+        return !tmp.exists() || !tmp.isFile();
+    }
+
+    public static boolean isRunning(int attempts) {
+        for (int i = 0; i < attempts; i++) {
+            try {
+                HttpURLConnection con = (HttpURLConnection) new URL("http://localhost:4040/api/").openConnection();
+                con.setRequestMethod("GET");
+                con.setConnectTimeout(5000);
+                int r = con.getResponseCode();
+                if (r == 200) return true;
+            } catch (Exception ignored) {
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                if (DEBUG) e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void run() {
+        this.os = OS.getOs();
+
+        if (os == null) {
+            OpenToALL.log(Level.ERROR, "Unknown OS: Impossible to start Ngrok app.");
+            return;
+        }
+        ngrokFile = new File(NGROK_FOLDER, os.exe);
+        boolean success = true;
+        if (!ngrokFile.exists() || !ngrokFile.isFile()) success = download();
+        if (needAuthentication()) authenticate();
+        if (success) startNgrok();
+
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            if (DEBUG) e.printStackTrace();
+        }
+
+        NGROK_THREAD = null;
+    }
+
+    private void authenticate() {
+        try {
+            if (process != null) process.destroy();
+            process = new ProcessBuilder(ngrokFile.getAbsolutePath(), "authtoken", authtoken).start();
+            process.waitFor();
+        } catch (IOException | InterruptedException e) {
+            OpenToALL.log(Level.ERROR, "Failed to authenticate on Ngrok app!");
+            if (DEBUG) e.printStackTrace();
+        }
+    }
+
+    public void close() throws InterruptedException {
+        if (process != null) {
+            process.destroy();
+            process.waitFor();
+        }
+    }
 
     private void startNgrok() {
         try {
@@ -87,28 +137,26 @@ public class NgrokThread extends Thread {
             process = new ProcessBuilder(ngrokFile.getAbsolutePath(), "start", "--none").start();
         } catch (IOException e) {
             OpenToALL.log(Level.ERROR, "Failed to start Ngrok app!");
-            if (OpenToALL.DEBUG) e.printStackTrace();
+            if (DEBUG) e.printStackTrace();
         }
     }
 
     public boolean download() {
-        OpenToALL.LOGGER.info("Downloading Ngrok app...");
+        MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(DONLOADING_TEXT);
+        OpenToALL.log(Level.INFO, DONLOADING_TEXT.getString());
         File zip = new File(NGROK_FOLDER, "ngrok.zip");
         try {
             FileUtils.copyURLToFile(new URL(os.download), zip);
             ZipUtil.unzip(zip, new File(NGROK_FOLDER));
             zip.delete();
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(DONLOADED_TEXT);
+            OpenToALL.log(Level.INFO, DONLOADED_TEXT.getString());
             return true;
         } catch (IOException e) {
             OpenToALL.log(Level.ERROR, "Failed to download Ngrok app!");
-            if (OpenToALL.DEBUG) e.printStackTrace();
+            if (DEBUG) e.printStackTrace();
             return false;
         }
-    }
-
-    public void setAuthtoken(String authtoken) {
-        String[] split = authtoken.split(" ");
-        this.authtoken = split[split.length - 1];
     }
 
     public enum OS {
