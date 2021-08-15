@@ -37,7 +37,7 @@ public class OpenToWanScreen extends Screen {
     private static final Text NEED_AUTHORIZATION_TEXT = new TranslatableText("wanServer.needAuthorization");
     public static final Text DONLOADING_TEXT = new TranslatableText("wanServer.downloadingNgrok").styled(style -> style.withColor(Formatting.GRAY));
     public static final Text DONLOADED_TEXT = new TranslatableText("wanServer.downloadedNgrok").styled(style -> style.withColor(Formatting.GRAY));
-    private static final String NGROK_WEBSITE = "https://dashboard.ngrok.com/";
+    private static final String NGROK_WEBSITE = "https://dashboard.ngrok.com/get-started/your-authtoken";
 
     private final Screen parent;
     private final MinecraftServer server;
