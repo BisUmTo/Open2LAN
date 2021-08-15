@@ -38,9 +38,6 @@ dependencies {
 	// You may need to force-disable transitiveness on them.
 
 	implementation 'io.github.vincenzopalazzo:material-ui-swing:1.1.2'
-	implementation ('org.sharegov:mjson:1.4.1') {
-		transitive false
-	}
 }
 
 processResources {

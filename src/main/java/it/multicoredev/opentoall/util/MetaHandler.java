@@ -16,13 +16,18 @@
 
 package it.multicoredev.opentoall.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import mjson.Json;
 
 public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion>> {
     private final String metaUrl;
@@ -34,11 +39,10 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
 
     public MetaHandler load() throws IOException {
         URL url = new URL(metaUrl);
-
-        Json json = Json.read(InstallerUtil.readTextFile(url));
-
-        this.versions = json.asJsonList()
-                .stream()
+        JsonArray jsonArray = new JsonParser().parse(InstallerUtil.readTextFile(url)).getAsJsonArray();
+        List<JsonObject> jsonObjectList = new ArrayList<>();
+        for (JsonElement jsonElement : jsonArray) jsonObjectList.add((JsonObject) jsonElement);
+        this.versions = jsonObjectList.stream()
                 .map(GameVersion::new)
                 .collect(Collectors.toList());
 
@@ -63,9 +67,9 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
         String version;
         boolean stable;
 
-        public GameVersion(Json json) {
-            version = json.at("version").asString();
-            stable = json.at("stable").asBoolean();
+        public GameVersion(JsonObject json) {
+            version = json.get("version").getAsString();
+            stable = json.get("stable").getAsBoolean();
         }
 
         public String getVersion() {
