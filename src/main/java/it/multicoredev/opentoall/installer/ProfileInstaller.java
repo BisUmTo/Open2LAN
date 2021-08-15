@@ -16,18 +16,17 @@
 
 package it.multicoredev.opentoall.installer;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import it.multicoredev.opentoall.OpenToALL;
-import it.multicoredev.opentoall.util.InstallerUtil;
-
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import it.multicoredev.opentoall.OpenToALL;
+import it.multicoredev.opentoall.util.InstallerUtil;
+import mjson.Json;
 
 
 public class ProfileInstaller {
@@ -41,33 +40,34 @@ public class ProfileInstaller {
 
         progress.updateProgress("Creating profile...");
 
-        JsonObject jsonObject = new JsonParser().parse(Files.readString(launcherProfiles)).getAsJsonObject();
-        JsonObject profiles = (JsonObject) jsonObject.get("profiles");
+        Json jsonObject = Json.read(Files.readString(launcherProfiles));
+
+        Json profiles = jsonObject.at("profiles");
         String profileName = OpenToALL.MOD_NAME + " - " + gameVersion;
 
-        JsonObject profile;
+        Json profile;
 
         if (profiles.has(profileName)) {
-            profile = profiles.getAsJsonObject(profileName);
+            profile = profiles.at(profileName);
         } else {
             profile = createProfile(profileName);
         }
 
-        profile.addProperty("lastVersionId", name);
-        profiles.add(profileName, profile);
+        profile.set("lastVersionId", name);
+        profiles.set(profileName, profile);
 
         Files.writeString(launcherProfiles, jsonObject.toString());
         progress.updateProgress("Profile created");
     }
 
-    private static JsonObject createProfile(String name) {
+    private static Json createProfile(String name) {
         DateFormat ISO_8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("name", name);
-        jsonObject.addProperty("type", "custom");
-        jsonObject.addProperty("created", ISO_8601.format(new Date()));
-        jsonObject.addProperty("lastUsed", ISO_8601.format(new Date()));
-        jsonObject.addProperty("icon", InstallerUtil.getProfileIcon());
+        Json jsonObject = Json.object();
+        jsonObject.set("name", name);
+        jsonObject.set("type", "custom");
+        jsonObject.set("created", ISO_8601.format(new Date()));
+        jsonObject.set("lastUsed", ISO_8601.format(new Date()));
+        jsonObject.set("icon", InstallerUtil.getProfileIcon());
         return jsonObject;
     }
 }
