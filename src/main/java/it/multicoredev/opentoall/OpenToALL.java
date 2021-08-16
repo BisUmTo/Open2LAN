@@ -2,9 +2,8 @@ package it.multicoredev.opentoall;
 
 import it.multicoredev.opentoall.ngrok.NgrokThread;
 import it.multicoredev.opentoall.ngrok.NgrokTunnel;
+import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.MinecraftVersion;
-import net.minecraft.client.MinecraftClient;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,13 +13,10 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static it.multicoredev.opentoall.Resources.MOD_NAME;
 import static it.multicoredev.opentoall.ngrok.NgrokThread.NGROK_FOLDER;
 
-public class OpenToALL implements ModInitializer {
-    public static final String MOD_ID = "opentoall";
-    public static final String MOD_NAME = "Open to ALL";
-    public static final String MOD_VERSION = "v1.0.0";
-    public static final String MINECRAFT_VERSION = MinecraftVersion.GAME_VERSION.getName();
+public class OpenToALL implements ClientModInitializer {
     public static Logger LOGGER = LogManager.getLogger();
     public static boolean DEBUG = true;
     public static NgrokTunnel NGROK_TUNNEL;
@@ -66,10 +62,8 @@ public class OpenToALL implements ModInitializer {
     }
 
     @Override
-    public void onInitialize() {
+    public void onInitializeClient() {
         Runtime.getRuntime().addShutdownHook(new Thread(OpenToALL::shutDown));
 
     }
-
-
 }

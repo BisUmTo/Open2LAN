@@ -1,6 +1,7 @@
 package it.multicoredev.opentoall.installer;
 
 import it.multicoredev.opentoall.OpenToALL;
+import it.multicoredev.opentoall.Resources;
 import it.multicoredev.opentoall.util.ArgumentParser;
 import it.multicoredev.opentoall.util.CrashDialog;
 import it.multicoredev.opentoall.util.InstallerUtil;
@@ -31,7 +32,7 @@ public class Installer {
                 .toURI()
                 .getPath());
 
-        System.out.println("Loading \"Open To ALL\" Installer: " + OpenToALL.MOD_VERSION);
+        System.out.println("Loading \"Open To ALL\" Installer: " + Resources.MOD_VERSION);
         Installer.ARGS = ArgumentParser.create(args);
         String command = Installer.ARGS.getCommand().orElse(null);
 
@@ -77,14 +78,14 @@ public class Installer {
 
         String loaderVersion = InstallerUtil.getLoaderVersion(ARGS);
 
-        FabricInstaller.install(path, OpenToALL.MINECRAFT_VERSION, loaderVersion, CONSOLE);
+        FabricInstaller.install(path, Resources.MINECRAFT_VERSION, loaderVersion, CONSOLE);
 
         if (ARGS.has("noprofile")) {
             return;
         }
 
-        String profileName = String.format("fabric-loader-%s-%s", loaderVersion, OpenToALL.MINECRAFT_VERSION );
-        ProfileInstaller.setupProfile(path, profileName, OpenToALL.MINECRAFT_VERSION, CONSOLE);
+        String profileName = String.format("fabric-loader-%s-%s", loaderVersion, Resources.MINECRAFT_VERSION );
+        ProfileInstaller.setupProfile(path, profileName, Resources.MINECRAFT_VERSION, CONSOLE);
     }
 
 

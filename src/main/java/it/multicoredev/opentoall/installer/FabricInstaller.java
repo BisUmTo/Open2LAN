@@ -24,10 +24,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 import it.multicoredev.opentoall.OpenToALL;
+import it.multicoredev.opentoall.Resources;
 
 public class FabricInstaller {
     public static void install(Path mcDir, String profileName, String loaderVersion, InstallerProgress progress) throws IOException {
-        System.out.println("Installing " + OpenToALL.MINECRAFT_VERSION + " with Open to ALL");
+        System.out.println("Installing " + Resources.MINECRAFT_VERSION + " with Open to ALL");
 
         Path versionsDir = mcDir.resolve("versions");
         Path profileDir = versionsDir.resolve(profileName);
@@ -41,7 +42,7 @@ public class FabricInstaller {
         Files.deleteIfExists(dummyJar);
         Files.createFile(dummyJar);
 
-        URL profileUrl = new URL(String.format("https://meta.fabricmc.net/v2/versions/loader/%s/%s/profile/json", OpenToALL.MINECRAFT_VERSION, loaderVersion));
+        URL profileUrl = new URL(String.format("https://meta.fabricmc.net/v2/versions/loader/%s/%s/profile/json", Resources.MINECRAFT_VERSION, loaderVersion));
         downloadFile(profileUrl, profileJson);
 
         progress.updateProgress("Done");

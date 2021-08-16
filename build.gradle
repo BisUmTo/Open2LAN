@@ -77,7 +77,6 @@ shadowJar {
 
 	minimize()
 	archiveClassifier.set(null)
-	exclude('**/*.psd')
 }
 
 
@@ -95,4 +94,8 @@ publishing {
 	}
 	repositories {
 	}
+}
+
+artifacts {
+	archives shadowJar
 }

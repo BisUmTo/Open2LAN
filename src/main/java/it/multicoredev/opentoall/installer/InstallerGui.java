@@ -1,6 +1,7 @@
 package it.multicoredev.opentoall.installer;
 
 import it.multicoredev.opentoall.OpenToALL;
+import it.multicoredev.opentoall.Resources;
 import it.multicoredev.opentoall.util.CrashDialog;
 import it.multicoredev.opentoall.util.InstallerUtil;
 import mdlaf.MaterialLookAndFeel;
@@ -36,7 +37,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
             setSize(404, MATERIAL ? 201 : 236);
             setDefaultCloseOperation(EXIT_ON_CLOSE);
             setResizable(false);
-            setTitle(OpenToALL.MOD_NAME + " Installer");
+            setTitle(Resources.MOD_NAME + " Installer");
             generatePane();
             setContentPane(pane);
             setIconImage(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemClassLoader().getResource("icon.png")));
@@ -101,7 +102,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
         }
 
         // MOD NAME
-        JLabel modName = new JLabel(OpenToALL.MOD_NAME + " " + OpenToALL.MOD_VERSION);
+        JLabel modName = new JLabel(Resources.MOD_NAME + " " + Resources.MOD_VERSION);
         modName.setFont(new Font("Dialog", Font.BOLD, 20));
         modName.setHorizontalAlignment(0);
         modName.setBounds(2, 5 + y, 385, 42);
@@ -109,7 +110,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
         mainPane.add(modName);
 
         // MINECRAFT VERSION
-        JLabel mineVersion = new JLabel("for Minecraft " + OpenToALL.MINECRAFT_VERSION);
+        JLabel mineVersion = new JLabel("for Minecraft " + Resources.MINECRAFT_VERSION);
         mineVersion.setFont(new Font("Dialog", Font.BOLD, 14));
         mineVersion.setHorizontalAlignment(0);
         mineVersion.setBounds(2, 38 + y, 385, 25);
@@ -117,7 +118,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
         mainPane.add(mineVersion);
 
         // INFO
-        JTextArea info = new JTextArea("This installer will install " + OpenToALL.MOD_NAME + " in the official Minecraft launcher and will create a new profile to run it.");
+        JTextArea info = new JTextArea("This installer will install " + Resources.MOD_NAME + " in the official Minecraft launcher and will create a new profile to run it.");
         info.setFont(new Font("Dialog", Font.PLAIN, 12));
         info.setEditable(false);
         info.setEnabled(true);
@@ -131,7 +132,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
         // LABEL FOLDER
         JLabel labelFolder = new JLabel("Folder");
         labelFolder.setBounds(15, 116 + y, 47, 16);
-
+        // todo check here
         mainPane.add(labelFolder);
 
         // FIELD FOLDER
@@ -238,7 +239,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
     }
 
     protected String buildSuccessfulTest() {
-        return "Open to ALL for Minecraft " + OpenToALL.MINECRAFT_VERSION + " has been successfully installed.";
+        return "Open to ALL for Minecraft " + Resources.MINECRAFT_VERSION + " has been successfully installed.";
     }
 
     @Override
@@ -280,15 +281,15 @@ public class InstallerGui extends JFrame implements InstallerProgress {
     public void install(Path dirMc, String loaderVersion) throws Exception {
         success = true;
         System.out.println("Dir minecraft: " + dirMc);
-        System.out.println(OpenToALL.MOD_NAME + " version: " + OpenToALL.MOD_VERSION);
-        System.out.println("Minecraft version: " + OpenToALL.MINECRAFT_VERSION);
+        System.out.println(Resources.MOD_NAME + " version: " + Resources.MOD_VERSION);
+        System.out.println("Minecraft version: " + Resources.MINECRAFT_VERSION);
 
         updateProgress("Installing");
 
         new Thread(() -> {
             try {
                 updateProgress("Installing Fabric Loader " + loaderVersion + " on the client");
-                String profileName = String.format("fabric-loader-%s-%s", loaderVersion, OpenToALL.MINECRAFT_VERSION);
+                String profileName = String.format("fabric-loader-%s-%s", loaderVersion, Resources.MINECRAFT_VERSION);
 
                 Path versionsDir = dirMc.resolve("versions");
                 Path profileDir = versionsDir.resolve(profileName);
@@ -298,7 +299,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
                 }
 
                 FabricInstaller.install(dirMc, profileName, loaderVersion, this);
-                ProfileInstaller.setupProfile(dirMc, profileName, OpenToALL.MINECRAFT_VERSION, this);
+                ProfileInstaller.setupProfile(dirMc, profileName, Resources.MINECRAFT_VERSION, this);
                 copyMod(dirMc);
                 SwingUtilities.invokeLater(this::showInstalledMessage);
             } catch (Exception e) {
@@ -310,10 +311,10 @@ public class InstallerGui extends JFrame implements InstallerProgress {
     }
 
     private void copyMod(Path dirMc) {
-        updateProgress("Copying " + OpenToALL.MOD_NAME + " JAR");
+        updateProgress("Copying " + Resources.MOD_NAME + " JAR");
         File modJar = null;
         try {
-            modJar = new File(OpenToALL.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            modJar = new File(Resources.class.getProtectionDomain().getCodeSource().getLocation().toURI());
         } catch (URISyntaxException e) {
             e.printStackTrace();
             error(e);

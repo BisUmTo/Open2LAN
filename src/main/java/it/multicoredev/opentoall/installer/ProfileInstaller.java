@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import it.multicoredev.opentoall.OpenToALL;
+import it.multicoredev.opentoall.Resources;
 import it.multicoredev.opentoall.util.InstallerUtil;
 import mjson.Json;
 
@@ -43,7 +44,7 @@ public class ProfileInstaller {
         Json jsonObject = Json.read(Files.readString(launcherProfiles));
 
         Json profiles = jsonObject.at("profiles");
-        String profileName = OpenToALL.MOD_NAME + " - " + gameVersion;
+        String profileName = Resources.MOD_NAME + " - " + gameVersion;
 
         Json profile;
 
