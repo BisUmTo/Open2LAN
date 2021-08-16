@@ -2,6 +2,7 @@ package it.multicoredev.opentoall.gui.screen;
 
 
 import it.multicoredev.opentoall.OpenToALL;
+import it.multicoredev.opentoall.Resources;
 import it.multicoredev.opentoall.gui.widget.CopyTextFieldWidget;
 import it.multicoredev.opentoall.mixin.IntegratedServerAccessor;
 import it.multicoredev.opentoall.mixin.PlayerManagerAccessor;
@@ -36,7 +37,7 @@ public class OpenToLanScreen extends Screen {
     private static final Text CONFIG_TITLE_TEXT = new TranslatableText("lanServer.configTitle");
     private static final Text OPEN_TO_WAN_TEXT = new TranslatableText("lanServer.shareToWan");
     private static final Text CHANGED_PORT_TEXT = new TranslatableText("wanServer.changedPort").styled(style -> style.withColor(Formatting.GRAY));
-    private static final Identifier WIDGETS_TEXTURE = new Identifier(OpenToALL.MOD_ID, "textures/gui/widgets.png");
+    private static final Identifier WIDGETS_TEXTURE = new Identifier(Resources.MOD_ID, "textures/gui/widgets.png");
 
     private final Screen parent;
     private final MinecraftServer server;

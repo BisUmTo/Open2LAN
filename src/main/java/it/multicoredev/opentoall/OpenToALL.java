@@ -14,13 +14,11 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static it.multicoredev.opentoall.Resources.MOD_NAME;
 import static it.multicoredev.opentoall.ngrok.NgrokThread.NGROK_FOLDER;
 
 public class OpenToALL implements ModInitializer {
-    public static final String MOD_ID = "opentoall";
-    public static final String MOD_NAME = "Open to ALL";
-    public static final String MOD_VERSION = "v1.0.0";
-    public static final String MINECRAFT_VERSION = MinecraftVersion.GAME_VERSION.getName();
+
     public static Logger LOGGER = LogManager.getLogger();
     public static boolean DEBUG = true;
     public static NgrokTunnel NGROK_TUNNEL;
@@ -68,7 +66,6 @@ public class OpenToALL implements ModInitializer {
     @Override
     public void onInitialize() {
         Runtime.getRuntime().addShutdownHook(new Thread(OpenToALL::shutDown));
-
     }
 
 

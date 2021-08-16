@@ -1,0 +1,22 @@
+{
+  "required": true,
+  "package": "it.multicoredev.opentoall.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+    "IntegratedServerAccessor",
+    "PlayerManagerAccessor",
+    "ServerLoginNetworkHandlerMixin"
+  ],
+  "client": [
+    "GameMenuScreenMixin",
+    "MinecraftClientMixin",
+    "PublishCommandMixin",
+    "ServerLoginNetworkHandlerThreadMixin",
+    "TextFieldWidgetAccessor"
+  ],
+  "server": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
