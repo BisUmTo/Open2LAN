@@ -1,6 +1,5 @@
 package it.multicoredev.opentoall.installer;
 
-import it.multicoredev.opentoall.OpenToALL;
 import it.multicoredev.opentoall.Resources;
 import it.multicoredev.opentoall.util.CrashDialog;
 import it.multicoredev.opentoall.util.InstallerUtil;
@@ -8,7 +7,6 @@ import mdlaf.MaterialLookAndFeel;
 import mdlaf.themes.MaterialOceanicTheme;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -20,6 +18,7 @@ import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 public class InstallerGui extends JFrame implements InstallerProgress {
     public static boolean MATERIAL = true;
@@ -78,7 +77,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
         try {
             JLabel imageLabel;
             if (MATERIAL) {
-                Image image = new ImageIcon(ClassLoader.getSystemClassLoader().getResource("material_icon.png" )).getImage();
+                Image image = new ImageIcon(ClassLoader.getSystemClassLoader().getResource("material_icon.png")).getImage();
                 imageLabel = new JLabel(new ImageIcon(image.getScaledInstance(64, 64, Image.SCALE_FAST)));
             } else {
                 imageLabel = new JLabel("<html><p style=\"color:#EBEBEB\">Material<br>Design<br>Version</p></html>");
@@ -226,9 +225,9 @@ public class InstallerGui extends JFrame implements InstallerProgress {
         statusLabel.setForeground(UIManager.getColor("Label.foreground"));
     }
 
-    protected String buildEditorPaneStyle() {
+    protected String buildEditorPaneStyle(Color color) {
         JLabel label = new JLabel();
-        label.setForeground(Color.RED);
+        label.setForeground(color);
         Font font = label.getFont();
         Color background = label.getBackground();
         Color foreground = label.getForeground();
@@ -239,7 +238,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
     }
 
     protected String buildSuccessfulTest() {
-        return "Open to ALL for Minecraft " + Resources.MINECRAFT_VERSION + " has been successfully installed.";
+        return "Open to ALL for Minecraft " + Resources.MINECRAFT_VERSION + " has been installed.";
     }
 
     @Override
@@ -256,7 +255,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
         System.err.println(st);
 
         String html = String.format("<html><body style=\"%s\">%s</body></html>",
-                buildEditorPaneStyle(),
+                buildEditorPaneStyle(Color.RED),
                 st.replace(System.lineSeparator(), "<br>").replace("\t", "&ensp;"));
         JEditorPane textPane = new JEditorPane("text/html", html);
         textPane.setEditable(false);
@@ -302,6 +301,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
                 ProfileInstaller.setupProfile(dirMc, profileName, Resources.MINECRAFT_VERSION, this);
                 copyMod(dirMc);
                 SwingUtilities.invokeLater(this::showInstalledMessage);
+                updateProgress("Installation completed");
             } catch (Exception e) {
                 error(e);
             }
@@ -320,7 +320,7 @@ public class InstallerGui extends JFrame implements InstallerProgress {
             error(e);
         }
         try {
-            Files.copy(modJar.toPath(), dirMc.resolve("mods").resolve(modJar.getName()));
+            Files.copy(modJar.toPath(), dirMc.resolve("mods").resolve(modJar.getName()), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             e.printStackTrace();
             error(e);
@@ -329,23 +329,8 @@ public class InstallerGui extends JFrame implements InstallerProgress {
 
     private void showInstalledMessage() {
         if (success) {
-            JEditorPane pane = new JEditorPane("text/html", "<html><body style=\"" + buildEditorPaneStyle() + "\">" + buildSuccessfulTest() + "</body></html>");
+            JEditorPane pane = new JEditorPane("text/html", "<html><body style=\"margin-right:25px;" + buildEditorPaneStyle(MATERIAL ? Color.WHITE : Color.BLACK) + "\">" + buildSuccessfulTest() + "</body></html>");
             pane.setEditable(false);
-
-            pane.addHyperlinkListener(e -> {
-                try {
-                    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                            Desktop.getDesktop().browse(e.getURL().toURI());
-                        } else {
-                            throw new UnsupportedOperationException("Failed to open " + e.getURL().toString());
-                        }
-                    }
-                } catch (Throwable throwable) {
-                    error(throwable);
-                }
-            });
-
             JOptionPane.showMessageDialog(null, pane, "Successfully Installed", JOptionPane.INFORMATION_MESSAGE);
         }
     }

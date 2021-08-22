@@ -96,6 +96,6 @@ publishing {
 	}
 }
 
-artifacts {
-	archives shadowJar
-}
+//artifacts {
+//	archives shadowJar
+//}
