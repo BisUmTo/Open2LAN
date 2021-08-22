@@ -1,4 +1,4 @@
-package mod.linguardium.open2lan.mixin;
+package it.multicoredev.opentoall.mixin;
 
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.world.GameMode;

@@ -1,27 +1,28 @@
 {
   "schemaVersion": 1,
-  "id": "open2lan",
+  "id": "opentoall",
   "version": "${version}",
-  "name": "Open2LAN",
-  "description": "Change settings on Open to LAN screen and /publish command",
+  "name": "Open To ALL",
+  "description": "Adds Open to ALL menu\nChange settings on Open to LAN screen and /publish command",
   "authors": [
     "BisUmTo",
-    "Linguardium"
+    "Linguardium",
+    "ENDERZOMBIE102"
   ],
   "contributors": [],
   "contact": {},
   "license": "MIT",
-  "icon": "assets/open2lan/icon.png",
-  "environment": "*",
+  "icon": "assets/opentoall/icon.png",
+  "environment": "client",
   "entrypoints": {
-    "main": [
-      "mod.linguardium.open2lan.Open2Lan"
+    "main": [],
+    "client": [
+      "it.multicoredev.opentoall.OpenToALL"
     ],
-    "client": [],
     "server": []
   },
   "mixins": [
-    "open2lan.mixins.json"
+    "opentoall.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.4.0",

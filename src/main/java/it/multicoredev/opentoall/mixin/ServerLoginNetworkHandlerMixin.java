@@ -1,4 +1,4 @@
-package mod.linguardium.open2lan.mixin;
+package it.multicoredev.opentoall.mixin;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginNetworkHandler;

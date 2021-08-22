@@ -1,4 +1,4 @@
-package mod.linguardium.open2lan.mixin;
+package it.multicoredev.opentoall.mixin;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;

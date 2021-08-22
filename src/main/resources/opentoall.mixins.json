@@ -1,16 +1,18 @@
 {
   "required": true,
-  "package": "mod.linguardium.open2lan.mixin",
+  "package": "it.multicoredev.opentoall.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "IntegratedServerAccessor",
     "PlayerManagerAccessor",
     "ServerLoginNetworkHandlerMixin"
   ],
   "client": [
+    "IntegratedServerAccessor",
     "GameMenuScreenMixin",
+    "MinecraftClientMixin",
     "PublishCommandMixin",
-    "ServerLoginNetworkHandlerThreadMixin"
+    "ServerLoginNetworkHandlerThreadMixin",
+    "TextFieldWidgetAccessor"
   ],
   "server": [
   ],
