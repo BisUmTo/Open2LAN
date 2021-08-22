@@ -1,14 +1,12 @@
 package it.multicoredev.opentoall.util;
 
 import it.multicoredev.opentoall.installer.Installer;
-import it.multicoredev.opentoall.ngrok.NgrokThread;
+import it.multicoredev.opentoall.playit.PlayIt;
 
 import java.awt.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.stream.Collectors;
@@ -22,7 +20,7 @@ public class InstallerUtil {
     public static File getWorkingDirectory(String applicationName) {
         String userHome = System.getProperty("user.home", ".");
         File workingDirectory = null;
-        NgrokThread.OS os = NgrokThread.OS.getOs();
+        PlayIt.OS os = PlayIt.OS.getOs();
         if (os == null) workingDirectory = new File(userHome, applicationName + '/');
         else switch (os) {
             case LINUX -> workingDirectory = new File(userHome, '.' + applicationName + '/');

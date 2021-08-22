@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MinecraftClient.class)
 public class MinecraftClientMixin {
     @Inject(method = "stop", at = @At(value = "HEAD"))
-    public void lanServerProperties(CallbackInfo ci) {
+    public void stop(CallbackInfo ci) {
         OpenToALL.shutDown();
     }
 }

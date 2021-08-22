@@ -1,11 +1,11 @@
 package it.multicoredev.opentoall.gui.screen;
 
 
-import it.multicoredev.opentoall.OpenToALL;
 import it.multicoredev.opentoall.Resources;
 import it.multicoredev.opentoall.gui.widget.CopyTextFieldWidget;
 import it.multicoredev.opentoall.mixin.IntegratedServerAccessor;
 import it.multicoredev.opentoall.mixin.PlayerManagerAccessor;
+import it.multicoredev.opentoall.playit.PlayIt;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
@@ -22,7 +22,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.GameMode;
 
-import java.io.IOException;
+import static it.multicoredev.opentoall.OpenToALL.PLAYIT;
 
 public class OpenToLanScreen extends Screen {
     private static final Text ALLOW_COMMANDS_TEXT = new TranslatableText("selectWorld.allowCommands");
@@ -133,8 +133,13 @@ public class OpenToLanScreen extends Screen {
         this.addDrawableChild(startButton);
 
         // WAN
-        ButtonWidget wanButton = new TexturedButtonWidget(width / 2 - 155, height / 4 + 104, 20, 20, 0, 0, 20, WIDGETS_TEXTURE, 20, 40, (button) -> {
-            this.client.setScreen(new OpenToWanScreen(this));
+        ButtonWidget wanButton = new TexturedButtonWidget(width / 2 - 155, height / 4 + 104, 20, 20, 0, 0, 20, WIDGETS_TEXTURE, 42, 44, (button) -> {
+            if(PLAYIT == null || !PLAYIT.isRunning()){
+                new Thread(OpenToWanScreen::startWanWorld).start();
+                client.setScreen(null);
+            } else {
+                this.client.setScreen(new OpenToWanScreen(this));
+            }
         }, OPEN_TO_WAN_TEXT);
         if (!client.isIntegratedServerRunning() || !server.isRemote()) wanButton.visible = false;
         this.addDrawableChild(wanButton);
@@ -204,15 +209,11 @@ public class OpenToLanScreen extends Screen {
         int i = lanPort > 0 && lanPort < 65536 ? lanPort : NetworkUtils.findLocalPort();
         if (server.openToLan(this.gameMode, this.allowCommands, i)) {
             sendLanMessage("commands.publish.started", i);
-            if (OpenToALL.NGROK_TUNNEL != null && OpenToALL.NGROK_TUNNEL.port() != server.getServerPort()) {
-                try {
-                    OpenToALL.NGROK_TUNNEL.close();
-                    client.inGameHud.getChatHud().addMessage(CHANGED_PORT_TEXT);
-                } catch (IOException e) {
-                    if(OpenToALL.DEBUG) e.printStackTrace();
-                }
-                OpenToALL.NGROK_TUNNEL = null;
-            } else if (OpenToALL.NGROK_TUNNEL != null) {
+            if (PLAYIT != null && PLAYIT.getPort() != server.getServerPort()) {
+                PLAYIT.stop();
+                client.inGameHud.getChatHud().addMessage(CHANGED_PORT_TEXT);
+                PLAYIT = null;
+            } else if (PLAYIT != null) {
                 OpenToWanScreen.sendWanMessage("wanServer.started");
             }
         } else {
