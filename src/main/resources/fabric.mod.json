@@ -12,7 +12,8 @@
   "contributors": [],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/opentoall",
-    "sources": "https://github.com/BisUmTo/OpenToALL/issues"
+    "issues": "https://github.com/BisUmTo/OpenToALL/issues",
+    "sources": "https://github.com/BisUmTo/OpenToALL"
   },
   "license": "MIT",
   "icon": "assets/opentoall/icon.png",
