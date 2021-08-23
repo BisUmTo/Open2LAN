@@ -10,7 +10,10 @@
     "ENDERZOMBIE102"
   ],
   "contributors": [],
-  "contact": {},
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/opentoall",
+    "sources": "https://github.com/BisUmTo/OpenToALL/issues"
+  },
   "license": "MIT",
   "icon": "assets/opentoall/icon.png",
   "environment": "client",
