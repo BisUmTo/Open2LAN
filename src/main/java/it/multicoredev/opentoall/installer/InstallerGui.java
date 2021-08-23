@@ -20,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import static it.multicoredev.opentoall.Resources.MOD_ID;
+
 public class InstallerGui extends JFrame implements InstallerProgress {
     public static boolean MATERIAL = true;
     private static InstallerGui INSTANCE;
@@ -318,6 +320,21 @@ public class InstallerGui extends JFrame implements InstallerProgress {
         } catch (URISyntaxException e) {
             e.printStackTrace();
             error(e);
+        }
+        File mods = dirMc.resolve("mods").toFile();
+        if(mods.exists() && mods.isDirectory()){
+            if(mods.listFiles() != null)
+                for(File file : mods.listFiles()){
+                    if(file.getName().startsWith(MOD_ID+'-'))
+                        file.delete();
+                }
+        } else {
+            try {
+                Files.createDirectories(mods.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+                error(e);
+            }
         }
         try {
             Files.copy(modJar.toPath(), dirMc.resolve("mods").resolve(modJar.getName()), StandardCopyOption.REPLACE_EXISTING);

@@ -6,6 +6,7 @@ import it.multicoredev.opentoall.util.ArgumentParser;
 import it.multicoredev.opentoall.util.CrashDialog;
 import it.multicoredev.opentoall.util.InstallerUtil;
 import it.multicoredev.opentoall.util.MetaHandler;
+import org.apache.commons.io.FileUtils;
 
 import java.awt.*;
 import java.io.File;
@@ -15,7 +16,9 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
+import static it.multicoredev.opentoall.Resources.MOD_ID;
 import static it.multicoredev.opentoall.installer.InstallerProgress.CONSOLE;
 
 public class Installer {
@@ -86,8 +89,15 @@ public class Installer {
 
         String profileName = String.format("fabric-loader-%s-%s", loaderVersion, Resources.MINECRAFT_VERSION );
         ProfileInstaller.setupProfile(path, profileName, Resources.MINECRAFT_VERSION, CONSOLE);
+        File jar = new File(Resources.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        File mods = path.resolve("mods").toFile();
+        if(mods.exists() && mods.isDirectory()){
+            if(mods.listFiles() != null)
+                for(File file : mods.listFiles()){
+                    if(file.getName().startsWith(MOD_ID+'-'))
+                        file.delete();
+                }
+        } else Files.createDirectories(mods.toPath());
+        Files.copy(jar.toPath(), path.resolve("mods").resolve(jar.getName()), StandardCopyOption.REPLACE_EXISTING);
     }
-
-
-
 }
